@@ -57,6 +57,7 @@ def test_slot_of_matches_the_longest_key_per_domain():
     assert slot_of("node", "binary_sensor", "e_node/pve1_status") == "running"
     assert slot_of("node", "sensor", "e_node/pve1_node_memory_percentage") == "memory_pct"
     assert slot_of("node", "sensor", "e_node/pve1_node_max_memory") == "max_memory"
+    assert slot_of("node", "sensor", "e_pve_backup_last_backup") == "last_backup"
     assert slot_of("container", "button", "e_200_snapshot_create") == "snapshot_create"
     assert slot_of("container", "button", "e_200_hibernate") is None
     assert slot_of("storage", "sensor", "e_pve1_local_storage_used_percentage") == "used_pct"
