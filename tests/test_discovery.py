@@ -92,8 +92,8 @@ async def test_inventory(hass: HomeAssistant):
     _entity(hass, entry, lxc, "button", "105_restart")
 
     storage = _device(hass, entry, "STORAGE_pve/local", "Storage pve/local", via=node)
-    _entity(hass, entry, storage, "sensor", "pve/local_storage_used_perc")
-    _entity(hass, entry, storage, "binary_sensor", "pve/local_storage_active")
+    _entity(hass, entry, storage, "sensor", "pve_local_storage_used_perc")
+    _entity(hass, entry, storage, "binary_sensor", "pve_local_storage_active")
 
     # Core-style lower-case identifiers remain supported as before.
     core_node = _device(hass, entry, "node_node/pve1", "pve1")
