@@ -67,6 +67,7 @@ SLOTS: dict[str, dict[str, dict[str, str]]] = {
             "vm_max_disk": "max_disk",
             "vm_uptime": "uptime",
             "vm_status": "status",
+            "status": "status",
             "vm_netin": "netin",
             "vm_netout": "netout",
         },
