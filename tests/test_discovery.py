@@ -35,10 +35,16 @@ def _entity(hass, entry, device, domain, unique, disabled=False):
 
 
 def test_parse_identifier():
+    # Built-in Proxmox VE identifier forms remain supported.
     assert parse_identifier("abc", "abc_node_node/pve1") == ("node", "node/pve1")
     assert parse_identifier("abc", "abc_vm_100") == ("vm", "100")
     assert parse_identifier("abc", "abc_container_200") == ("container", "200")
     assert parse_identifier("abc", "abc_storage_local-lvm") == ("storage", "local-lvm")
+    # Proxmox VE Custom uses upper-case resource types and a different guest vocabulary.
+    assert parse_identifier("abc", "abc_NODE_pve") == ("node", "pve")
+    assert parse_identifier("abc", "abc_QEMU_100") == ("vm", "100")
+    assert parse_identifier("abc", "abc_LXC_105") == ("container", "105")
+    assert parse_identifier("abc", "abc_STORAGE_local-lvm") == ("storage", "local-lvm")
     assert parse_identifier("abc", "other_vm_100") is None
     assert parse_identifier("abc", "abc_disk_1") is None
     assert parse_identifier("abc", "abc_vm") is None
@@ -62,28 +68,57 @@ async def test_inventory(hass: HomeAssistant):
 
     entry = MockConfigEntry(domain=PROXMOX, title="192.168.1.10", state=ConfigEntryState.LOADED)
     entry.add_to_hass(hass)
-    node = _device(hass, entry, "node_node/pve1", "pve1")
+
+    # Proxmox VE Custom device identifiers: NODE, QEMU, LXC and STORAGE.
+    node = _device(hass, entry, "NODE_pve", "Node pve")
     for domain, unique in (
-        ("sensor", "node/pve1_node_cpu"),
-        ("sensor", "node/pve1_node_memory_percentage"),
-        ("binary_sensor", "node/pve1_status"),
-        ("button", "node/pve1_start_all"),
-        ("update", "node/pve1_node_update"),
+        ("sensor", "pve_cpu_used"),
+        ("sensor", "pve_memory_used_perc"),
+        ("sensor", "pve_disk_free"),
+        ("binary_sensor", "pve_status"),
+        ("button", "pve_reboot"),
     ):
         _entity(hass, entry, node, domain, unique)
-    _entity(hass, entry, node, "sensor", "node/pve1_node_backup_last_backup", disabled=True)
-    vm101 = _device(hass, entry, "vm_101", "win11", via=node)
-    vm100 = _device(hass, entry, "vm_100", "homeassistant", via=node)
-    for unique in ("100_vm_cpu", "100_vm_status"):
-        _entity(hass, entry, vm100, "sensor", unique)
-    _entity(hass, entry, vm100, "binary_sensor", "100_status")
-    _entity(hass, entry, vm100, "button", "100_shutdown")
+    _entity(hass, entry, node, "sensor", "pve_backup_last_backup", disabled=True)
+    qemu = _device(hass, entry, "QEMU_100", "QEMU Home-Assistant (100)", via=node)
+    _entity(hass, entry, qemu, "sensor", "100_cpu_used")
+    _entity(hass, entry, qemu, "sensor", "100_status")
+    _entity(hass, entry, qemu, "binary_sensor", "100_status")
+    _entity(hass, entry, qemu, "button", "100_shutdown")
+    lxc = _device(hass, entry, "LXC_105", "LXC bot-manager (105)", via=node)
+    _entity(hass, entry, lxc, "sensor", "105_cpu_used")
+    _entity(hass, entry, lxc, "button", "105_restart")
+    storage = _device(hass, entry, "STORAGE_pve/local", "Storage pve/local", via=node)
+    _entity(hass, entry, storage, "sensor", "pve_local_storage_used_perc")
+    _entity(hass, entry, storage, "binary_sensor", "pve_local_storage_active")
+
+    # Core-style lower-case identifiers remain supported alongside the Custom integration.
+    core_node = _device(hass, entry, "node_node/pve1", "pve1")
+    _entity(hass, entry, core_node, "sensor", "node/pve1_node_cpu")
+    vm101 = _device(hass, entry, "vm_101", "win11", via=core_node)
     _entity(hass, entry, vm101, "button", "101_start")
-    ct = _device(hass, entry, "container_200", "nginx", via=node)
-    _entity(hass, entry, ct, "button", "200_restart")
-    storage = _device(hass, entry, "storage_local-lvm", "Storage (local-lvm)", via=node)
-    _entity(hass, entry, storage, "sensor", "pve1_local-lvm_storage_used_percentage")
-    _entity(hass, entry, storage, "binary_sensor", "pve1_local-lvm_storage_active")
+
+    # A device of another integration on the same entry is left out
+    dr.async_get(hass).async_get_or_create(config_entry_id=entry.entry_id, identifiers={("other", "x")}, name="x")
+
+    inv = async_inventory(hass).as_dict()
+    assert inv["configured"] is True
+    [n] = [item for item in inv["node"] if item["key"] == "pve"]
+    assert n["name"] == "Node pve" and n["key"] == "pve"
+    assert set(n["entities"]) == {"cpu", "memory_pct", "disk", "running", "reboot"}
+    assert n["entities"]["running"].startswith("binary_sensor.")
+    assert n["disabled"] == ["last_backup"]
+    assert [item["key"] for item in inv["vm"]] == ["100", "101"]
+    assert inv["vm"][0]["name"] == "QEMU Home-Assistant (100)"
+    assert inv["vm"][0]["node"] == node.id
+    assert set(inv["vm"][0]["entities"]) == {"cpu", "status", "running", "shutdown"}
+    assert inv["vm"][1]["key"] == "101"
+    assert inv["container"][0]["key"] == "105"
+    assert set(inv["container"][0]["entities"]) == {"cpu", "restart"}
+    assert inv["storage"][0]["key"] == "pve/local"
+    assert set(inv["storage"][0]["entities"]) == {"used_pct", "active"}
+    assert [item["key"] for item in inv["node"] if item["key"] != "pve"] == ["node/pve1"]
+
     # A device of another integration on the same entry is left out
     dr.async_get(hass).async_get_or_create(config_entry_id=entry.entry_id, identifiers={("other", "x")}, name="x")
 
