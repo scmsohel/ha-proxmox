@@ -31,11 +31,14 @@ SLOTS: dict[str, dict[str, dict[str, str]]] = {
     "node": {
         "sensor": {
             "node_cpu": "cpu",
+            "cpu_used": "cpu",
             "node_max_cpu": "max_cpu",
             "node_memory": "memory",
             "node_max_memory": "max_memory",
             "node_memory_percentage": "memory_pct",
+            "memory_used_perc": "memory_pct",
             "node_disk": "disk",
+            "disk_free": "disk",
             "node_max_disk": "max_disk",
             "node_uptime": "uptime",
             "node_status": "status",
@@ -55,6 +58,7 @@ SLOTS: dict[str, dict[str, dict[str, str]]] = {
     "vm": {
         "sensor": {
             "vm_cpu": "cpu",
+            "cpu_used": "cpu",
             "vm_max_cpu": "max_cpu",
             "vm_memory": "memory",
             "vm_max_memory": "max_memory",
@@ -85,6 +89,7 @@ SLOTS: dict[str, dict[str, dict[str, str]]] = {
     "container": {
         "sensor": {
             "container_cpu": "cpu",
+            "cpu_used": "cpu",
             "container_max_cpu": "max_cpu",
             "container_memory": "memory",
             "container_max_memory": "max_memory",
@@ -105,6 +110,7 @@ SLOTS: dict[str, dict[str, dict[str, str]]] = {
             "storage_total": "total",
             "storage_available": "available",
             "storage_used_percentage": "used_pct",
+            "storage_used_perc": "used_pct",
         },
         "binary_sensor": {"storage_active": "active", "storage_enabled": "enabled", "storage_shared": "shared"},
     },
