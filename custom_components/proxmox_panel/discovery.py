@@ -111,6 +111,15 @@ SLOTS: dict[str, dict[str, dict[str, str]]] = {
 }
 KINDS = tuple(SLOTS)
 
+# Device identifiers emitted by the Proxmox VE Custom integration use upper-case
+# resource names. Translate them to this panel's internal item kinds.
+DEVICE_KIND_ALIASES = {
+    "NODE": "node",
+    "QEMU": "vm",
+    "LXC": "container",
+    "STORAGE": "storage",
+}
+
 
 @dataclass
 class Item:
@@ -147,8 +156,11 @@ def parse_identifier(entry_id: str, identifier: str) -> tuple[str, str] | None:
     prefix = f"{entry_id}_"
     if not identifier.startswith(prefix):
         return None
-    kind, sep, key = identifier[len(prefix) :].partition("_")
-    if not sep or not key or kind not in KINDS:
+    raw_kind, sep, key = identifier[len(prefix) :].partition("_")
+    if not sep or not key:
+        return None
+    kind = DEVICE_KIND_ALIASES.get(raw_kind, raw_kind.lower())
+    if kind not in KINDS:
         return None
     return kind, key
 
