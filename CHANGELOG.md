@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.2 - 2026-11-14
+
+### Fixes
+- Support Proxmox VE Custom device identifiers (`NODE`, `QEMU`, `LXC`, `STORAGE`) while keeping the built-in Proxmox VE identifier format.
+
+
 ## 1.1.1 - 2026-11-14
 
 ### Fixes
