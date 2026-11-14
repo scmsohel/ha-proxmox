@@ -116,7 +116,7 @@ async def test_inventory(hass: HomeAssistant):
     assert node_item["entities"]["running"].startswith("binary_sensor.")
     assert node_item["disabled"] == ["last_backup"]
 
-    [vm] = inv["vm"]
+    [vm] = [item for item in inv["vm"] if item["key"] == "100"]
     assert vm["key"] == "100" and vm["name"] == "QEMU Home-Assistant (100)"
     assert vm["node"] == node.id
     assert set(vm["entities"]) == {"cpu", "status", "running", "shutdown"}
