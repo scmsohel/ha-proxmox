@@ -57,6 +57,7 @@ def test_slot_of_matches_the_longest_key_per_domain():
     assert slot_of("node", "binary_sensor", "e_node/pve1_status") == "running"
     assert slot_of("node", "sensor", "e_node/pve1_node_memory_percentage") == "memory_pct"
     assert slot_of("node", "sensor", "e_node/pve1_node_max_memory") == "max_memory"
+    assert slot_of("node", "sensor", "e_pve_backup_last_backup") == "last_backup"
     assert slot_of("container", "button", "e_200_snapshot_create") == "snapshot_create"
     assert slot_of("container", "button", "e_200_hibernate") is None
     assert slot_of("storage", "sensor", "e_pve1_local_storage_used_percentage") == "used_pct"
@@ -115,7 +116,7 @@ async def test_inventory(hass: HomeAssistant):
     assert node_item["entities"]["running"].startswith("binary_sensor.")
     assert node_item["disabled"] == ["last_backup"]
 
-    [vm] = inv["vm"]
+    [vm] = [item for item in inv["vm"] if item["key"] == "100"]
     assert vm["key"] == "100" and vm["name"] == "QEMU Home-Assistant (100)"
     assert vm["node"] == node.id
     assert set(vm["entities"]) == {"cpu", "status", "running", "shutdown"}

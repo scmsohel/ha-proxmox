@@ -43,6 +43,7 @@ SLOTS: dict[str, dict[str, dict[str, str]]] = {
             "node_uptime": "uptime",
             "node_status": "status",
             "node_backup_last_backup": "last_backup",
+            "backup_last_backup": "last_backup",
             "node_backup_duration": "backup_duration",
         },
         "binary_sensor": {"status": "running", "node_backup_status": "backup_problem"},
