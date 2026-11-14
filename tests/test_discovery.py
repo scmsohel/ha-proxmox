@@ -106,7 +106,9 @@ async def test_inventory(hass: HomeAssistant):
 
     inv = async_inventory(hass).as_dict()
     assert inv["configured"] is True
-    assert inv["entries"] == [{"entry_id": entry.entry_id, "title": "192.168.10.81:8006", "state": "loaded", "loaded": True}]
+    assert inv["entries"] == [
+        {"entry_id": entry.entry_id, "title": "192.168.10.81:8006", "state": "loaded", "loaded": True}
+    ]
     [node_item] = [item for item in inv["node"] if item["key"] == "pve"]
     assert node_item["name"] == "Node pve"
     assert set(node_item["entities"]) == {"cpu", "memory_pct", "disk", "running", "reboot"}
